@@ -1,39 +1,94 @@
 package com.fearlauncher
 
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
+import com.fearlauncher.ui.theme.*
 import com.fearlauncher.ui.components.BottomNavBar
 import com.fearlauncher.ui.screens.*
 
 @Composable
 fun FearLauncherApp() {
-    var selectedItem by remember { mutableStateOf(0) }
+    val navController = rememberNavController()
     var isLoggedIn by remember { mutableStateOf(false) }
     var username by remember { mutableStateOf("") }
 
-    if (!isLoggedIn) {
-        LoginScreen(
-            onMicrosoftLogin = {
-                // Microsoft login logic here
-                isLoggedIn = true
-                username = "MicrosoftUser"
-            },
-            onLocalLogin = { user ->
-                // Local login logic here
-                isLoggedIn = true
-                username = user
-            }
-        )
-    } else {
-        Scaffold(
-            bottomBar = { 
-                BottomNavBar(selectedItem = selectedItem, onItemSelected = { selectedItem = it }) 
-            }
-        ) { innerPadding ->
-            when (selectedItem) {
-                0 -> HomeScreen(username = username)
-                1 -> PlayScreen(onLaunchGame = { version -> /* Launch logic */ })
-                2 -> SettingsScreen()
+    val infiniteTransition = rememberInfiniteTransition(label = "background")
+    val targetOffset by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(20000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "offset"
+    )
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(DeepBlack, GradientGrey, DeepBlack),
+                    start = androidx.compose.ui.geometry.Offset(targetOffset, targetOffset),
+                    end = androidx.compose.ui.geometry.Offset(targetOffset + 500f, targetOffset + 500f)
+                )
+            )
+    ) {
+        if (!isLoggedIn) {
+            LoginScreen(
+                onMicrosoftLogin = {
+                    username = "MicrosoftUser"
+                    isLoggedIn = true
+                },
+                onLocalLogin = { user ->
+                    username = user
+                    isLoggedIn = true
+                }
+            )
+        } else {
+            Scaffold(
+                containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                bottomBar = {
+                    BottomNavBar(
+                        selectedItem = when (navController.currentBackStackEntry?.destination?.route) {
+                            "home" -> 0
+                            "play" -> 1
+                            "settings" -> 2
+                            else -> 0
+                        },
+                        onItemSelected = { index ->
+                            val route = when (index) {
+                                0 -> "home"
+                                1 -> "play"
+                                2 -> "settings"
+                                else -> "home"
+                            }
+                            navController.navigate(route) {
+                                popUpTo("home") { saveState = true }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        }
+                    )
+                }
+            ) { innerPadding ->
+                Box(modifier = Modifier.padding(innerPadding)) {
+                    NavHost(navController = navController, startDestination = "home") {
+                        composable("home") { HomeScreen(username = username) }
+                        composable("play") { PlayScreen(onLaunchGame = { version -> /* Launch logic */ }) }
+                        composable("settings") { SettingsScreen() }
+                    }
+                }
             }
         }
     }

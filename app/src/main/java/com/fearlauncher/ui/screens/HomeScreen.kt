@@ -23,7 +23,6 @@ fun HomeScreen(username: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(colors = listOf(GradientStart, GradientEnd)))
             .padding(16.dp)
     ) {
         Text(
