@@ -1,17 +1,16 @@
-name: Build & Release Fear Launcher APK
+name: Build and Release APK
 
 on:
-  workflow_dispatch: # Manual run ke liye button
+  workflow_dispatch:
   push:
     branches:
       - main
 
 jobs:
-  build-and-release:
-    name: Build and Release APK
+  build:
     runs-on: ubuntu-latest
     permissions:
-      contents: write # GitHub Release banane ke liye zaroori hai
+      contents: write
 
     steps:
       - name: Checkout code
@@ -23,11 +22,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      # --- YE STEP GRADLEW ERROR KO HAMESHA KE LIYE FIX KAREGA ---
-      - name: Fix Missing Gradle Wrapper (Auto Download)
+      - name: Fix Gradle Wrapper
         run: |
           if [ ! -f "./gradlew" ]; then
-            echo "gradlew missing hai, downloading..."
             curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradlew -o gradlew
             chmod +x gradlew
             mkdir -p gradle/wrapper
@@ -39,70 +36,38 @@ jobs:
             echo "zipStoreBase=GRADLE_USER_HOME" >> gradle/wrapper/gradle-wrapper.properties
             echo "zipStorePath=wrapper/dists" >> gradle/wrapper/gradle-wrapper.properties
             curl -sL https://raw.githubusercontent.com/gradle/gradle/v8.4.0/gradle/wrapper/gradle-wrapper.jar -o gradle/wrapper/gradle-wrapper.jar
-          else
-            echo "gradlew already exists."
           fi
 
-      - name: Grant execute permission for gradlew
+      - name: Grant execute permission
         run: chmod +x gradlew
 
       - name: Build Debug APK
         run: ./gradlew assembleDebug
+
       - name: Build Release APK
         run: ./gradlew assembleRelease
 
-      - name: Get Version Name
-        id: get_version
-        run: |
-          VERSION=$(grep -oP 'versionName = "\K[^"]+' app/build.gradle.kts)
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Fear Launcher Version: $VERSION"
-
-      - name: Upload Debug APK Artifact
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: Fear-Launcher-Debug-APK
+          name: FearLauncher-Debug
           path: app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 30
 
-      - name: Upload Release APK Artifact
+      - name: Upload Release APK
         uses: actions/upload-artifact@v4
         with:
-          name: Fear-Launcher-Release-APK
+          name: FearLauncher-Release
           path: app/build/outputs/apk/release/app-release-unsigned.apk
-          retention-days: 30
 
-      # --- YE STEP GITHUB RELEASE BANAYEGA ---
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
         if: github.ref == 'refs/heads/main'
+        uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ steps.get_version.outputs.version }}-${{ github.run_number }}
-          name: Fear Launcher v${{ steps.get_version.outputs.version }} (Build ${{ github.run_number }})
-          body: |
-            ## 🚀 Fear Launcher New Build
-            
-            **Version:** ${{ steps.get_version.outputs.version }}
-            **Build Number:** ${{ github.run_number }}
-            
-            ### 📥 Downloads:
-            - **Debug APK:** For testing and development
-            - **Release APK:** Optimized for production
-            
-            ### ⚠️ Note:
-            - Enable "Install from Unknown Sources" in your phone settings before installing.
-            - This is a UI build. Backend Minecraft launching logic coming soon!
+          tag_name: v1.0.${{ github.run_number }}
+          name: Fear Launcher Build ${{ github.run_number }}
+          body: "New build of Fear Launcher. Download APKs from the release assets below."
           files: |
             app/build/outputs/apk/debug/app-debug.apk
             app/build/outputs/apk/release/app-release-unsigned.apk
-          draft: false
-          prerelease: false        env:
+        env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build Success Message
-        run: |
-          echo "=========================================="
-          echo "✅ Fear Launcher Build Successful!"
-          echo "=========================================="
-          echo "APKs uploaded to Artifacts and GitHub Releases."
-          echo "=========================================="
