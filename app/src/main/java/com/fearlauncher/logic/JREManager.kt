@@ -37,7 +37,9 @@ class JREManager(private val context: Context) {
     }
 
     suspend fun downloadJRE(version: JREVersion, onProgress: (Float) -> Unit) {
-        // Implementation for downloading and extracting JRE
-        // This will be expanded in future steps
+        val url = getDownloadUrl(version)
+        val destination = File(getJREPath(version), "jre.tar.gz")
+
+        // Use OkHttp for real download with progress
     }
 }

@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fearlauncher.network.NetworkModule
 import com.fearlauncher.ui.theme.*
 
 data class MinecraftVersion(
@@ -33,14 +34,26 @@ fun PlayScreen(
 ) {
     var selectedVersion by remember { mutableStateOf<MinecraftVersion?>(null) }
     var isLoading by remember { mutableStateOf(false) }
-    
-    val availableVersions = listOf(
-        MinecraftVersion("1.20.4", "1.20.4 - Latest Release", "release", true),
-        MinecraftVersion("1.20.1", "1.20.1 - Popular SMP", "release", true),
-        MinecraftVersion("1.19.2", "1.19.2 - Modded Stable", "release", true),
-        MinecraftVersion("1.20.2", "1.20.2 - Snapshot", "snapshot", false),
-        MinecraftVersion("1.18.2", "1.18.2 - Caves & Cliffs", "release", false)
-    )
+    var availableVersions by remember { mutableStateOf<List<MinecraftVersion>>(emptyList()) }
+
+    LaunchedEffect(Unit) {
+        isLoading = true
+        try {
+            val manifest = NetworkModule.minecraftApi.getVersionManifest()
+            availableVersions = manifest.versions.map { v ->
+                MinecraftVersion(
+                    id = v.id,
+                    name = "${v.id} - ${v.type.replaceFirstChar { it.uppercase() }}",
+                    type = v.type,
+                    isInstalled = false // Will be updated by VersionManager
+                )
+            }
+        } catch (e: Exception) {
+            // Handle error
+        } finally {
+            isLoading = false
+        }
+    }
 
     Column(
         modifier = Modifier

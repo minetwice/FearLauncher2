@@ -1,6 +1,7 @@
 package com.fearlauncher.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -27,6 +28,7 @@ fun LoginScreen(
 ) {
     var username by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
+    var isLocalMode by remember { mutableStateOf(true) }
 
     Column(
         modifier = Modifier
@@ -65,104 +67,146 @@ fun LoginScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    "Sign In",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = SilverPrimary,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Username Field
-                OutlinedTextField(
-                    value = username,
-                    onValueChange = { username = it },
-                    label = { Text("Username", color = SilverDark) },
-                    leadingIcon = {
-                        Icon(Icons.Default.Person, "Person", tint = SilverPrimary)
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White.copy(alpha = 0.8f),
-                        focusedBorderColor = SilverPrimary,
-                        unfocusedBorderColor = SilverDark
-                    )
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Local Login Button
-                Button(
-                    onClick = {
-                        if (username.isNotBlank()) {
-                            isLoading = true
-                            onLocalLogin(username)
-                            isLoading = false
-                        }
-                    },
+                // Mode Selector
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(50.dp),
-                    enabled = !isLoading && username.isNotBlank(),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = SilverPrimary,
-                        disabledContainerColor = SilverDark
-                    )
+                        .height(48.dp)
+                        .background(DeepBlack, RoundedCornerShape(24.dp))
+                        .padding(4.dp)
                 ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            color = BlackBg,
-                            strokeWidth = 2.dp
-                        )
-                    } else {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .background(
+                                if (isLocalMode) SilverPrimary else Color.Transparent,
+                                RoundedCornerShape(20.dp)
+                            )
+                            .clickable { isLocalMode = true },
+                        contentAlignment = Alignment.Center
+                    ) {
                         Text(
-                            "LOCAL LOGIN",
-                            color = BlackBg,
+                            "LOCAL",
+                            color = if (isLocalMode) BlackBg else SilverDark,
                             fontWeight = FontWeight.Bold,
-                            fontSize = 14.sp
+                            fontSize = 12.sp
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                            .background(
+                                if (!isLocalMode) SilverPrimary else Color.Transparent,
+                                RoundedCornerShape(20.dp)
+                            )
+                            .clickable { isLocalMode = false },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "MICROSOFT",
+                            color = if (!isLocalMode) BlackBg else SilverDark,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(12.dp))
 
-                Text(
-                    "or",
-                    color = SilverDark,
-                    fontSize = 12.sp
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(32.dp))
 
-                // Microsoft Login Button
-                OutlinedButton(
-                    onClick = onMicrosoftLogin,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(50.dp),
-                    enabled = !isLoading,
-                    shape = RoundedCornerShape(12.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = SilverPrimary
-                    ),
-                    border = ButtonDefaults.outlinedButtonBorder.copy(
-                        brush = Brush.linearGradient(listOf(SilverPrimary, SilverAccent))
+                if (isLocalMode) {
+                    // Username Field
+                    OutlinedTextField(
+                        value = username,
+                        onValueChange = { username = it },
+                        label = { Text("Username", color = SilverDark) },
+                        leadingIcon = {
+                            Icon(Icons.Default.Person, "Person", tint = SilverPrimary)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White.copy(alpha = 0.8f),
+                            focusedBorderColor = SilverPrimary,
+                            unfocusedBorderColor = SilverDark
+                        )
                     )
-                ) {
-                    Icon(
-                        Icons.Default.Lock,
-                        "Microsoft",
-                        tint = SilverPrimary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        "Sign in with Microsoft",
-                        color = SilverPrimary,
-                        fontWeight = FontWeight.Medium,
-                        fontSize = 14.sp
-                    )
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Local Login Button
+                    Button(
+                        onClick = {
+                            if (username.isNotBlank()) {
+                                isLoading = true
+                                onLocalLogin(username)
+                                isLoading = false
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        enabled = !isLoading && username.isNotBlank(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = SilverPrimary,
+                            disabledContainerColor = SilverDark
+                        )
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                color = BlackBg,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                "START PLAYING",
+                                color = BlackBg,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+                } else {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(
+                            Icons.Default.Lock,
+                            "Microsoft",
+                            tint = SilverPrimary,
+                            modifier = Modifier.size(64.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            "Secure Microsoft Login",
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium
+                        )
+                        Spacer(modifier = Modifier.height(32.dp))
+
+                        Button(
+                            onClick = onMicrosoftLogin,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            enabled = !isLoading,
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = SilverPrimary
+                            )
+                        ) {
+                            Text(
+                                "LOGIN WITH MICROSOFT",
+                                color = BlackBg,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
                 }
             }
         }
