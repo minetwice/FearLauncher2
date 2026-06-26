@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fearlauncher.ui.theme.*
+import com.fearlauncher.utils.RuntimeManager
 
 data class MinecraftVersion(
     val id: String,
@@ -145,7 +146,7 @@ fun PlayScreen(
                     .fillMaxHeight(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (selectedVersion != null) {
+                selectedVersion?.let { version ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(20.dp),
@@ -166,13 +167,13 @@ fun PlayScreen(
                             Spacer(modifier = Modifier.height(16.dp))
                             
                             Text(
-                                selectedVersion!!.name,
+                                version.name,
                                 style = MaterialTheme.typography.titleLarge,
                                 color = SilverPrimary,
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                selectedVersion!!.type,
+                                version.type,
                                 color = SilverDark,
                                 fontSize = 12.sp
                             )
@@ -205,13 +206,41 @@ fun PlayScreen(
                                 Text("8GB", color = SilverDark, fontSize = 10.sp)
                             }
                             
-                            Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
+
+                            // JRE Status
+                            val requiredJre = RuntimeManager.getRequiredRuntimeVersion(version.id)
+                            val isJreInstalled = RuntimeManager.isRuntimeInstalled(requiredJre)
+
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    if (isJreInstalled) Icons.Default.CheckCircle else Icons.Default.Warning,
+                                    contentDescription = null,
+                                    tint = if (isJreInstalled) SilverPrimary else Color.Red,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    "Requires JRE $requiredJre",
+                                    color = if (isJreInstalled) SilverDark else Color.Red,
+                                    fontSize = 12.sp
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
                             
                             // Launch Button
+                            val canLaunch = version.isInstalled && isJreInstalled
                             Button(
                                 onClick = {
                                     isLoading = true
-                                    onLaunchGame(selectedVersion!!.id)
+                                    onLaunchGame(version.id)
                                     isLoading = false
                                 },
                                 modifier = Modifier
@@ -220,7 +249,7 @@ fun PlayScreen(
                                 enabled = !isLoading,
                                 shape = RoundedCornerShape(12.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (selectedVersion!!.isInstalled) SilverPrimary else SilverDark
+                                    containerColor = if (canLaunch) SilverPrimary else SilverDark.copy(alpha = 0.5f)
                                 )
                             ) {
                                 if (isLoading) {
@@ -233,21 +262,33 @@ fun PlayScreen(
                                     Icon(
                                         Icons.Default.PlayArrow,
                                         "Play",
-                                        tint = if (selectedVersion!!.isInstalled) BlackBg else SilverDark,
+                                        tint = if (canLaunch) BlackBg else SilverDark,
                                         modifier = Modifier.size(24.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        if (selectedVersion!!.isInstalled) "LAUNCH GAME" else "INSTALL FIRST",
-                                        color = if (selectedVersion!!.isInstalled) BlackBg else SilverDark,
+                                        when {
+                                            !version.isInstalled -> "INSTALL GAME"
+                                            !isJreInstalled -> "MISSING JRE $requiredJre"
+                                            else -> "LAUNCH GAME"
+                                        },
+                                        color = if (canLaunch) BlackBg else SilverDark,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp
                                     )
                                 }
                             }
+
+                            if (version.isInstalled && !isJreInstalled) {
+                                TextButton(
+                                    onClick = { RuntimeManager.downloadRuntime(requiredJre) {} }
+                                ) {
+                                    Text("Download JRE $requiredJre", color = SilverPrimary, fontSize = 12.sp)
+                                }
+                            }
                         }
                     }
-                } else {
+                } ?: run {
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(20.dp),
