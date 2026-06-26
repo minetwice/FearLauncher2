@@ -1,7 +1,12 @@
 package com.fearlauncher.logic
 
 import android.content.Context
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.File
+import java.io.FileOutputStream
 
 object VersionManager {
 
@@ -29,7 +34,36 @@ object VersionManager {
         versionId: String,
         url: String,
         onProgress: (Float) -> Unit
-    ) {
-        // Real download logic with OkHttp and streaming to file
+    ) = withContext(Dispatchers.IO) {
+        val versionDir = File(getVersionsDirectory(context), versionId)
+        if (!versionDir.exists()) versionDir.mkdirs()
+
+        val destination = File(versionDir, "$versionId.jar")
+
+        val client = OkHttpClient()
+        val request = Request.Builder().url(url).build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) return@withContext
+
+            val body = response.body ?: return@withContext
+            val contentLength = body.contentLength()
+
+            body.byteStream().use { input ->
+                FileOutputStream(destination).use { output ->
+                    val buffer = ByteArray(8192)
+                    var bytesRead: Int
+                    var totalBytesRead = 0L
+
+                    while (input.read(buffer).also { bytesRead = it } != -1) {
+                        output.write(buffer, 0, bytesRead)
+                        totalBytesRead += bytesRead
+                        if (contentLength > 0) {
+                            onProgress(totalBytesRead.toFloat() / contentLength)
+                        }
+                    }
+                }
+            }
+        }
     }
 }

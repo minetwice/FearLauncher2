@@ -1,5 +1,7 @@
+@file:OptIn(ExperimentalMaterial3Api::class)
 package com.fearlauncher.ui.screens
 
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -8,7 +10,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,8 +18,11 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.platform.LocalContext
+import com.fearlauncher.logic.VersionManager
 import com.fearlauncher.network.NetworkModule
 import com.fearlauncher.ui.theme.*
+import kotlinx.coroutines.launch
 
 data class MinecraftVersion(
     val id: String,
@@ -27,14 +31,17 @@ data class MinecraftVersion(
     val isInstalled: Boolean = false
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayScreen(
     onLaunchGame: (String) -> Unit
 ) {
     var selectedVersion by remember { mutableStateOf<MinecraftVersion?>(null) }
     var isLoading by remember { mutableStateOf(false) }
+    var isDownloading by remember { mutableStateOf(false) }
+    var downloadProgress by remember { mutableFloatStateOf(0f) }
     var availableVersions by remember { mutableStateOf<List<MinecraftVersion>>(emptyList()) }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         isLoading = true
@@ -219,17 +226,63 @@ fun PlayScreen(
                             
                             Spacer(modifier = Modifier.height(24.dp))
                             
+                            // Download Progress
+                            if (isDownloading) {
+                                LinearProgressIndicator(
+                                    progress = downloadProgress,
+                                    modifier = Modifier.fillMaxWidth().height(8.dp).padding(vertical = 8.dp),
+                                    color = SilverPrimary,
+                                    trackColor = SilverDark.copy(alpha = 0.3f)
+                                )
+                                Text(
+                                    "Downloading... ${(downloadProgress * 100).toInt()}%",
+                                    color = SilverPrimary,
+                                    fontSize = 12.sp
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                            }
+
                             // Launch Button
                             Button(
                                 onClick = {
-                                    isLoading = true
-                                    onLaunchGame(selectedVersion!!.id)
-                                    isLoading = false
+                                    if (selectedVersion!!.isInstalled) {
+                                        isLoading = true
+                                        onLaunchGame(selectedVersion!!.id)
+                                        isLoading = false
+                                    } else {
+                                        isDownloading = true
+                                        scope.launch {
+                                            try {
+                                                // In a real scenario, we'd get the actual JAR URL from the manifest
+                                                val manifest = NetworkModule.minecraftApi.getVersionManifest()
+                                                val versionInfo = manifest.versions.find { it.id == selectedVersion!!.id }
+
+                                                VersionManager.downloadVersion(
+                                                    context = context,
+                                                    versionId = selectedVersion!!.id,
+                                                    url = versionInfo?.url ?: "",
+                                                    onProgress = { progress ->
+                                                        downloadProgress = progress
+                                                    }
+                                                )
+                                                // Refresh versions list to show as installed
+                                                availableVersions = availableVersions.map {
+                                                    if (it.id == selectedVersion!!.id) it.copy(isInstalled = true) else it
+                                                }
+                                                selectedVersion = selectedVersion?.copy(isInstalled = true)
+                                            } catch (e: Exception) {
+                                                // Handle error
+                                            } finally {
+                                                isDownloading = false
+                                                downloadProgress = 0f
+                                            }
+                                        }
+                                    }
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(56.dp),
-                                enabled = !isLoading,
+                                enabled = !isLoading && !isDownloading,
                                 shape = RoundedCornerShape(12.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = if (selectedVersion!!.isInstalled) SilverPrimary else SilverDark
@@ -243,14 +296,14 @@ fun PlayScreen(
                                     )
                                 } else {
                                     Icon(
-                                        Icons.Default.PlayArrow,
-                                        "Play",
+                                        if (selectedVersion!!.isInstalled) Icons.Default.PlayArrow else Icons.Default.Download,
+                                        "Action",
                                         tint = if (selectedVersion!!.isInstalled) BlackBg else SilverDark,
                                         modifier = Modifier.size(24.dp)
                                     )
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Text(
-                                        if (selectedVersion!!.isInstalled) "LAUNCH GAME" else "INSTALL FIRST",
+                                        if (selectedVersion!!.isInstalled) "LAUNCH GAME" else "INSTALL VERSION",
                                         color = if (selectedVersion!!.isInstalled) BlackBg else SilverDark,
                                         fontWeight = FontWeight.Bold,
                                         fontSize = 16.sp
@@ -316,7 +369,6 @@ fun PlayScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VersionListItem(
     version: MinecraftVersion,

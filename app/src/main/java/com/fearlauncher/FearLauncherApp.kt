@@ -11,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.fearlauncher.ui.theme.*
 import com.fearlauncher.ui.components.BottomNavBar
@@ -19,6 +20,7 @@ import com.fearlauncher.ui.screens.*
 @Composable
 fun FearLauncherApp() {
     val navController = rememberNavController()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
     var isLoggedIn by remember { mutableStateOf(false) }
     var username by remember { mutableStateOf("") }
 
@@ -60,7 +62,7 @@ fun FearLauncherApp() {
                 containerColor = androidx.compose.ui.graphics.Color.Transparent,
                 bottomBar = {
                     BottomNavBar(
-                        selectedItem = when (navController.currentBackStackEntry?.destination?.route) {
+                        selectedItem = when (navBackStackEntry?.destination?.route) {
                             "home" -> 0
                             "play" -> 1
                             "settings" -> 2

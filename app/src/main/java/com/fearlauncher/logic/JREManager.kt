@@ -2,7 +2,12 @@ package com.fearlauncher.logic
 
 import android.content.Context
 import com.fearlauncher.utils.SystemUtils
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import java.io.File
+import java.io.FileOutputStream
 
 class JREManager(private val context: Context) {
 
@@ -36,10 +41,35 @@ class JREManager(private val context: Context) {
         }
     }
 
-    suspend fun downloadJRE(version: JREVersion, onProgress: (Float) -> Unit) {
+    suspend fun downloadJRE(version: JREVersion, onProgress: (Float) -> Unit) = withContext(Dispatchers.IO) {
         val url = getDownloadUrl(version)
-        val destination = File(getJREPath(version), "jre.tar.gz")
+        val jreDir = getJREPath(version)
+        val destination = File(jreDir, "jre.tar.gz")
 
-        // Use OkHttp for real download with progress
+        val client = OkHttpClient()
+        val request = Request.Builder().url(url).build()
+
+        client.newCall(request).execute().use { response ->
+            if (!response.isSuccessful) return@withContext
+
+            val body = response.body ?: return@withContext
+            val contentLength = body.contentLength()
+
+            body.byteStream().use { input ->
+                FileOutputStream(destination).use { output ->
+                    val buffer = ByteArray(8192)
+                    var bytesRead: Int
+                    var totalBytesRead = 0L
+
+                    while (input.read(buffer).also { bytesRead = it } != -1) {
+                        output.write(buffer, 0, bytesRead)
+                        totalBytesRead += bytesRead
+                        if (contentLength > 0) {
+                            onProgress(totalBytesRead.toFloat() / contentLength)
+                        }
+                    }
+                }
+            }
+        }
     }
 }
