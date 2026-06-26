@@ -1,12 +1,19 @@
 package com.fearlauncher
 
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
 import com.fearlauncher.ui.components.BottomNavBar
 import com.fearlauncher.ui.screens.*
+import com.fearlauncher.utils.RuntimeManager
 
 @Composable
 fun FearLauncherApp() {
+    LaunchedEffect(Unit) {
+        RuntimeManager.autoDownloadMissingRuntimes()
+    }
+
     var selectedItem by remember { mutableStateOf(0) }
     var isLoggedIn by remember { mutableStateOf(false) }
     var username by remember { mutableStateOf("") }
@@ -30,10 +37,12 @@ fun FearLauncherApp() {
                 BottomNavBar(selectedItem = selectedItem, onItemSelected = { selectedItem = it }) 
             }
         ) { innerPadding ->
-            when (selectedItem) {
-                0 -> HomeScreen(username = username)
-                1 -> PlayScreen(onLaunchGame = { version -> /* Launch logic */ })
-                2 -> SettingsScreen()
+            androidx.compose.foundation.layout.Box(modifier = Modifier.padding(innerPadding)) {
+                when (selectedItem) {
+                    0 -> HomeScreen(username = username)
+                    1 -> PlayScreen(onLaunchGame = { version -> /* Launch logic */ })
+                    2 -> SettingsScreen()
+                }
             }
         }
     }
