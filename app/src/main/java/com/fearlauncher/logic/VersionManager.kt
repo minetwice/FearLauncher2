@@ -29,11 +29,19 @@ object VersionManager {
         return jsonFile.exists() && jarFile.exists()
     }
 
+    data class DownloadStatus(
+        val progress: Float,
+        val downloadedSize: Long,
+        val totalSize: Long,
+        val speed: Double, // Bytes per second
+        val etaSeconds: Long
+    )
+
     suspend fun downloadVersion(
         context: Context,
         versionId: String,
         clientJarUrl: String,
-        onProgress: (Float) -> Unit
+        onStatus: (DownloadStatus) -> Unit
     ) = withContext(Dispatchers.IO) {
         val versionDir = File(getVersionsDirectory(context), versionId)
         if (!versionDir.exists()) versionDir.mkdirs()
@@ -49,17 +57,31 @@ object VersionManager {
             val body = response.body ?: return@withContext
             val contentLength = body.contentLength()
 
+            val startTime = System.currentTimeMillis()
             body.byteStream().use { input ->
                 FileOutputStream(destination).use { output ->
-                    val buffer = ByteArray(8192)
+                    val buffer = ByteArray(16384)
                     var bytesRead: Int
                     var totalBytesRead = 0L
 
                     while (input.read(buffer).also { bytesRead = it } != -1) {
                         output.write(buffer, 0, bytesRead)
                         totalBytesRead += bytesRead
+
+                        val currentTime = System.currentTimeMillis()
+                        val duration = (currentTime - startTime) / 1000.0
+                        val speed = if (duration > 0) totalBytesRead / duration else 0.0
+                        val remainingBytes = contentLength - totalBytesRead
+                        val eta = if (speed > 0) (remainingBytes / speed).toLong() else 0L
+
                         if (contentLength > 0) {
-                            onProgress(totalBytesRead.toFloat() / contentLength)
+                            onStatus(DownloadStatus(
+                                progress = totalBytesRead.toFloat() / contentLength,
+                                downloadedSize = totalBytesRead,
+                                totalSize = contentLength,
+                                speed = speed,
+                                etaSeconds = eta
+                            ))
                         }
                     }
                 }

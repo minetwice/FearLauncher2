@@ -82,17 +82,19 @@ fun FearLauncherApp() {
                     BottomNavBar(
                         selectedItem = when (navBackStackEntry?.destination?.route) {
                             "home" -> 0
-                            "play" -> 1
-                            "modpacks" -> 2
-                            "settings" -> 3
+                            "skins" -> 1
+                            "play" -> 2
+                            "modpacks" -> 3
+                            "settings" -> 4
                             else -> 0
                         },
                         onItemSelected = { index ->
                             val route = when (index) {
                                 0 -> "home"
-                                1 -> "play"
-                                2 -> "modpacks"
-                                3 -> "settings"
+                                1 -> "skins"
+                                2 -> "play"
+                                3 -> "modpacks"
+                                4 -> "settings"
                                 else -> "home"
                             }
                             navController.navigate(route) {
@@ -120,6 +122,7 @@ fun FearLauncherApp() {
                                 }
                             )
                         }
+                        composable("skins") { SkinScreen() }
                         composable("play") {
                             PlayScreen(
                                 onLaunchGame = { version ->

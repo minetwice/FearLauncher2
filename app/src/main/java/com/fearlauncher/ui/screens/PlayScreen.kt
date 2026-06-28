@@ -39,8 +39,9 @@ fun PlayScreen(
     var expandedDropdown by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var isDownloading by remember { mutableStateOf(false) }
-    var downloadProgress by remember { mutableFloatStateOf(0f) }
+    var downloadStatus by remember { mutableStateOf<com.fearlauncher.logic.VersionManager.DownloadStatus?>(null) }
     var availableVersions by remember { mutableStateOf<List<MinecraftVersion>>(emptyList()) }
+    var searchQuery by remember { mutableStateOf("") }
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
 
@@ -158,10 +159,25 @@ fun PlayScreen(
                     )
                     Spacer(modifier = Modifier.height(12.dp))
                     
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
+                        placeholder = { Text("Search versions...", color = SilverDark) },
+                        leadingIcon = { Icon(Icons.Default.Search, null, tint = SilverPrimary) },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            focusedBorderColor = SilverPrimary,
+                            unfocusedBorderColor = SilverDark
+                        ),
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(availableVersions) { version ->
+                        items(availableVersions.filter { it.id.contains(searchQuery, ignoreCase = true) }) { version ->
                             VersionListItem(
                                 version = version,
                                 isSelected = selectedVersion?.id == version.id,
@@ -243,20 +259,10 @@ fun PlayScreen(
                             
                             Spacer(modifier = Modifier.height(24.dp))
                             
-                            // Download Progress
-                            if (isDownloading) {
-                                LinearProgressIndicator(
-                                    progress = downloadProgress,
-                                    modifier = Modifier.fillMaxWidth().height(8.dp).padding(vertical = 8.dp),
-                                    color = SilverPrimary,
-                                    trackColor = SilverDark.copy(alpha = 0.3f)
-                                )
-                                Text(
-                                    "Downloading... ${(downloadProgress * 100).toInt()}%",
-                                    color = SilverPrimary,
-                                    fontSize = 12.sp
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
+                            // Download Status Bar
+                            if (isDownloading && downloadStatus != null) {
+                                com.fearlauncher.ui.components.DownloadStatusBar(status = downloadStatus!!)
+                                Spacer(modifier = Modifier.height(12.dp))
                             }
 
                             // Launch Button
@@ -280,8 +286,8 @@ fun PlayScreen(
                                                     context = context,
                                                     versionId = selectedVersion!!.id,
                                                     clientJarUrl = detail.downloads.client.url,
-                                                    onProgress = { progress ->
-                                                        downloadProgress = progress
+                                                    onStatus = { status ->
+                                                        downloadStatus = status
                                                     }
                                                 )
                                                 // Refresh versions list to show as installed
@@ -293,7 +299,7 @@ fun PlayScreen(
                                                 // Handle error
                                             } finally {
                                                 isDownloading = false
-                                                downloadProgress = 0f
+                                                downloadStatus = null
                                             }
                                         }
                                     }

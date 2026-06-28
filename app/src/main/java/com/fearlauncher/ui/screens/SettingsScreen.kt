@@ -31,18 +31,19 @@ fun SettingsScreen() {
     var resolution by remember { mutableStateOf(config.resolution) }
     var gameDir by remember { mutableStateOf(config.gameDir.ifEmpty { "/sdcard/FearLauncher/.minecraft" }) }
     var renderer by remember { mutableStateOf(config.renderer) }
-    var guiScale by remember { mutableFloatStateOf(1f) }
+    var guiScale by remember { mutableFloatStateOf(config.guiScale) }
     var keepOpen by remember { mutableStateOf(true) }
     var enableGloss by remember { mutableStateOf(true) }
 
-    LaunchedEffect(javaPath, jvmArgs, memoryAlloc, resolution, gameDir, renderer) {
+    LaunchedEffect(javaPath, jvmArgs, memoryAlloc, resolution, gameDir, renderer, guiScale) {
         com.fearlauncher.logic.ConfigManager.updateConfig(context) { it.copy(
             javaPath = javaPath,
             jvmArgs = jvmArgs,
             maxMemory = (memoryAlloc * 1024).toInt(),
             resolution = resolution,
             gameDir = gameDir,
-            renderer = renderer
+            renderer = renderer,
+            guiScale = guiScale
         )}
     }
 
@@ -67,7 +68,12 @@ fun SettingsScreen() {
         Spacer(modifier = Modifier.height(32.dp))
 
         SettingsSection(title = "Java Runtime") {
-            SettingsTextField(label = "Java Path", value = javaPath, onValueChange = { javaPath = it })
+            SettingsDropdown(
+                label = "Java Version",
+                options = listOf("JRE 18", "JRE 21", "JRE 25"),
+                selected = javaPath,
+                onSelect = { javaPath = it }
+            )
             SettingsTextField(label = "JVM Arguments", value = jvmArgs, onValueChange = { jvmArgs = it })
         }
 
@@ -76,6 +82,7 @@ fun SettingsScreen() {
         SettingsSection(title = "Game Settings") {
             SettingsSlider(label = "Global Memory Allocation", value = memoryAlloc, range = 2f..16f, onValueChange = { memoryAlloc = it })
             SettingsTextField(label = "Resolution", value = resolution, onValueChange = { resolution = it })
+            SettingsSlider(label = "GUI Scale", value = guiScale, range = 0.5f..2f, onValueChange = { guiScale = it }, isInteger = false)
             SettingsTextField(label = "Game Directory", value = gameDir, onValueChange = { gameDir = it })
         }
 
@@ -88,7 +95,6 @@ fun SettingsScreen() {
                 selected = renderer,
                 onSelect = { renderer = it }
             )
-            SettingsSlider(label = "GUI Scale", value = guiScale, range = 0.5f..2f, onValueChange = { guiScale = it }, isInteger = false)
         }
 
         Spacer(modifier = Modifier.height(24.dp))

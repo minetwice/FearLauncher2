@@ -10,9 +10,10 @@ data class LauncherConfig(
     val maxMemory: Int = 4096,
     val resolution: String = "1280x720",
     val renderer: String = "Holly Renderer",
-    val javaPath: String = "",
+    val javaPath: String = "JRE 21",
     val jvmArgs: String = "-XX:+UseG1GC -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8",
-    val gameDir: String = ""
+    val gameDir: String = "",
+    val guiScale: Float = 1.0f
 )
 
 data class Account(

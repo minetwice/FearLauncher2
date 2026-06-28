@@ -9,6 +9,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material.icons.filled.Logout
+import androidx.compose.material.icons.filled.UploadFile
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
@@ -65,8 +66,13 @@ fun HomeScreen(
                         Text("Welcome back,", color = SilverDark, fontSize = 14.sp)
                         Text("$username!", color = SilverPrimary, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
                     }
-                    IconButton(onClick = onLogout) {
-                        Icon(Icons.Default.Logout, "Logout", tint = Color.Red.copy(alpha = 0.7f))
+                    Row {
+                        IconButton(onClick = { /* Pick JAR */ }) {
+                            Icon(Icons.Default.UploadFile, "Run JAR", tint = SilverPrimary)
+                        }
+                        IconButton(onClick = onLogout) {
+                            Icon(Icons.Default.Logout, "Logout", tint = Color.Red.copy(alpha = 0.7f))
+                        }
                     }
                 }
 

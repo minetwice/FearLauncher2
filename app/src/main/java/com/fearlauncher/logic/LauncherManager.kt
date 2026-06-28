@@ -19,7 +19,12 @@ object LauncherManager {
 
         if (!jarFile.exists()) return null
 
-        val jrePath = File(context.filesDir, "jre/21/bin/java") // Defaulting to JRE 21
+        val jreId = when {
+            jvmArgs.contains("JRE 18") -> "18"
+            jvmArgs.contains("JRE 25") -> "25"
+            else -> "21"
+        }
+        val jrePath = File(context.filesDir, "jre/$jreId/bin/java")
 
         val command = mutableListOf<String>()
         command.add(jrePath.absolutePath)
@@ -60,6 +65,27 @@ object LauncherManager {
 
         return try {
             processBuilder.start()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
+    }
+
+    fun executeJar(
+        context: Context,
+        jarFile: File,
+        maxMemory: Int,
+        jreVersion: String = "21"
+    ): Process? {
+        val jrePath = File(context.filesDir, "jre/$jreVersion/bin/java")
+        val command = listOf(
+            jrePath.absolutePath,
+            "-Xmx${maxMemory}M",
+            "-jar",
+            jarFile.absolutePath
+        )
+        return try {
+            ProcessBuilder(command).directory(context.filesDir).start()
         } catch (e: Exception) {
             e.printStackTrace()
             null
