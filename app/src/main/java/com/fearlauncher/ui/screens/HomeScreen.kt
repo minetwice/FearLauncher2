@@ -6,12 +6,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -23,7 +26,7 @@ fun HomeScreen(username: String) {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp)
+            .padding(24.dp)
     ) {
         Text(
             "FEAR LAUNCHER",
@@ -58,6 +61,45 @@ fun HomeScreen(username: String) {
                 }
             }
         }
+        Spacer(modifier = Modifier.height(24.dp))
+
+        // Skin Section
+        Text("Your Character", color = SilverAccent, style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(12.dp))
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            colors = CardDefaults.cardColors(containerColor = BlackSurface.copy(alpha = 0.8f))
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(80.dp)
+                        .background(DeepBlack, RoundedCornerShape(12.dp)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(Icons.Default.Person, "Skin", tint = SilverDark, modifier = Modifier.size(48.dp))
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Current Skin", color = SilverPrimary, fontWeight = FontWeight.Bold)
+                    Text("Default Alex", color = SilverDark, fontSize = 12.sp)
+                }
+                Button(
+                    onClick = { },
+                    colors = ButtonDefaults.buttonColors(containerColor = SilverPrimary.copy(alpha = 0.1f)),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(Icons.Default.FileUpload, "Upload", tint = SilverPrimary, modifier = Modifier.size(16.dp))
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Change", color = SilverPrimary, fontSize = 12.sp)
+                }
+            }
+        }
+
         Spacer(modifier = Modifier.height(24.dp))
         Text("Recent Installations", color = SilverAccent, style = MaterialTheme.typography.titleMedium)
         Spacer(modifier = Modifier.height(12.dp))

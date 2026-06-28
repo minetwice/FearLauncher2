@@ -65,14 +65,16 @@ fun FearLauncherApp() {
                         selectedItem = when (navBackStackEntry?.destination?.route) {
                             "home" -> 0
                             "play" -> 1
-                            "settings" -> 2
+                            "modpacks" -> 2
+                            "settings" -> 3
                             else -> 0
                         },
                         onItemSelected = { index ->
                             val route = when (index) {
                                 0 -> "home"
                                 1 -> "play"
-                                2 -> "settings"
+                                2 -> "modpacks"
+                                3 -> "settings"
                                 else -> "home"
                             }
                             navController.navigate(route) {
@@ -88,6 +90,7 @@ fun FearLauncherApp() {
                     NavHost(navController = navController, startDestination = "home") {
                         composable("home") { HomeScreen(username = username) }
                         composable("play") { PlayScreen(onLaunchGame = { version -> /* Launch logic */ }) }
+                        composable("modpacks") { ModpackScreen() }
                         composable("settings") { SettingsScreen() }
                     }
                 }

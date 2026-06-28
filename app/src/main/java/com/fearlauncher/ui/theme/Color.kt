@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.Color
 val SilverPrimary = Color(0xFFE2E2E2)
 val SilverDark = Color(0xFF8E8E93)
 val SilverAccent = Color(0xFFFFFFFF)
+val SilverGloss = Color(0xFFF5F5F7)
 
 val BlackBg = Color(0xFF000000)
 val BlackSurface = Color(0xFF1C1C1E)
