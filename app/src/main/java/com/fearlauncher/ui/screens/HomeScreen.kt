@@ -1,16 +1,19 @@
 package com.fearlauncher.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FileUpload
+import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -22,8 +25,14 @@ import com.fearlauncher.ui.components.VersionCard
 import com.fearlauncher.ui.theme.*
 
 @Composable
-fun HomeScreen(username: String) {
+fun HomeScreen(
+    username: String,
+    onLogout: () -> Unit,
+    onAccountSelect: (String) -> Unit
+) {
     val scrollState = rememberScrollState()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val config = remember { com.fearlauncher.logic.ConfigManager.getConfig(context) }
 
     Column(
         modifier = Modifier
@@ -38,29 +47,56 @@ fun HomeScreen(username: String) {
             fontWeight = FontWeight.Bold
         )
         Spacer(modifier = Modifier.height(24.dp))
+        // Account Dashboard Card
         Card(
-            modifier = Modifier.fillMaxWidth().height(180.dp),
+            modifier = Modifier.fillMaxWidth().heightIn(min = 180.dp),
             shape = RoundedCornerShape(20.dp),
             colors = CardDefaults.cardColors(containerColor = BlackSurface.copy(alpha = 0.8f))
         ) {
-            Box(
+            Column(
                 modifier = Modifier.fillMaxSize().padding(20.dp)
             ) {
-                Column {
-                    Text("Welcome back,", color = SilverDark, fontSize = 14.sp)
-                    Text("$username!", color = SilverPrimary, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text("Ready to explore?", color = androidx.compose.ui.graphics.Color.White.copy(alpha = 0.7f))
-                }
-                Button(
-                    onClick = { },
-                    modifier = Modifier.align(Alignment.BottomEnd).width(140.dp).height(48.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = SilverPrimary),
-                    shape = RoundedCornerShape(12.dp)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(Icons.Default.PlayArrow, "Play", tint = androidx.compose.ui.graphics.Color.Black)
-                    Spacer(Modifier.width(8.dp))
-                    Text("PLAY NOW", color = androidx.compose.ui.graphics.Color.Black, fontWeight = FontWeight.Bold)
+                    Column {
+                        Text("Welcome back,", color = SilverDark, fontSize = 14.sp)
+                        Text("$username!", color = SilverPrimary, style = MaterialTheme.typography.headlineLarge, fontWeight = FontWeight.ExtraBold)
+                    }
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.Default.Logout, "Logout", tint = Color.Red.copy(alpha = 0.7f))
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text("Switch Account", color = SilverDark, fontSize = 12.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    config.accounts.forEach { account ->
+                        Box(
+                            modifier = Modifier
+                                .background(
+                                    if (account.username == username) SilverPrimary.copy(alpha = 0.2f) else DeepBlack,
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .clickable { onAccountSelect(account.username) }
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                account.username,
+                                color = if (account.username == username) SilverPrimary else SilverDark,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
                 }
             }
         }

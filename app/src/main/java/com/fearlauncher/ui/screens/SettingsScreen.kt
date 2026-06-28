@@ -21,17 +21,30 @@ import com.fearlauncher.ui.theme.*
 @Composable
 fun SettingsScreen() {
     val scrollState = rememberScrollState()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val config = remember { com.fearlauncher.logic.ConfigManager.getConfig(context) }
 
     // Settings State
-    var javaPath by remember { mutableStateOf("Internal (JRE 21)") }
-    var jvmArgs by remember { mutableStateOf("-Xmx4G -XX:+UseG1GC") }
-    var memoryAlloc by remember { mutableFloatStateOf(4f) }
-    var resolution by remember { mutableStateOf("1920x1080") }
-    var gameDir by remember { mutableStateOf("/sdcard/FearLauncher/.minecraft") }
-    var renderer by remember { mutableStateOf("Holy Renderer") }
+    var javaPath by remember { mutableStateOf(config.javaPath.ifEmpty { "Internal (JRE 21)" }) }
+    var jvmArgs by remember { mutableStateOf(config.jvmArgs) }
+    var memoryAlloc by remember { mutableFloatStateOf(config.maxMemory / 1024f) }
+    var resolution by remember { mutableStateOf(config.resolution) }
+    var gameDir by remember { mutableStateOf(config.gameDir.ifEmpty { "/sdcard/FearLauncher/.minecraft" }) }
+    var renderer by remember { mutableStateOf(config.renderer) }
     var guiScale by remember { mutableFloatStateOf(1f) }
     var keepOpen by remember { mutableStateOf(true) }
     var enableGloss by remember { mutableStateOf(true) }
+
+    LaunchedEffect(javaPath, jvmArgs, memoryAlloc, resolution, gameDir, renderer) {
+        com.fearlauncher.logic.ConfigManager.updateConfig(context) { it.copy(
+            javaPath = javaPath,
+            jvmArgs = jvmArgs,
+            maxMemory = (memoryAlloc * 1024).toInt(),
+            resolution = resolution,
+            gameDir = gameDir,
+            renderer = renderer
+        )}
+    }
 
     Column(
         modifier = Modifier
@@ -71,7 +84,7 @@ fun SettingsScreen() {
         SettingsSection(title = "Video Settings") {
             SettingsDropdown(
                 label = "Renderer",
-                options = listOf("Holy Renderer", "GL4ES 1.1.4", "Angle (Experimental)"),
+                options = listOf("Holly Renderer", "Zink", "LTW Renderer", "GL4ES 1.1.4"),
                 selected = renderer,
                 onSelect = { renderer = it }
             )

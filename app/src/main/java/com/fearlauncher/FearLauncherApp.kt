@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.navigation.compose.NavHost
@@ -22,8 +23,15 @@ import com.fearlauncher.ui.screens.*
 fun FearLauncherApp() {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    var isLoggedIn by remember { mutableStateOf(false) }
-    var username by remember { mutableStateOf("") }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val config = remember { com.fearlauncher.logic.ConfigManager.getConfig(context) }
+    var isLoggedIn by remember { mutableStateOf(config.selectedUsername.isNotBlank()) }
+    var username by remember { mutableStateOf(config.selectedUsername) }
+
+    // Toast state
+    var toastVisible by remember { mutableStateOf(false) }
+    var toastMessage by remember { mutableStateOf("") }
+    var toastTitle by remember { mutableStateOf("") }
 
     val infiniteTransition = rememberInfiniteTransition(label = "background")
     val targetOffset by infiniteTransition.animateFloat(
@@ -62,11 +70,7 @@ fun FearLauncherApp() {
 
         if (!isLoggedIn) {
             LoginScreen(
-                onMicrosoftLogin = {
-                    username = "MicrosoftUser"
-                    isLoggedIn = true
-                },
-                onLocalLogin = { user ->
+                onLoginSuccess = { user ->
                     username = user
                     isLoggedIn = true
                 }
@@ -102,13 +106,58 @@ fun FearLauncherApp() {
             ) { innerPadding ->
                 Box(modifier = Modifier.padding(innerPadding)) {
                     NavHost(navController = navController, startDestination = "home") {
-                        composable("home") { HomeScreen(username = username) }
-                        composable("play") { PlayScreen(onLaunchGame = { version -> /* Launch logic */ }) }
+                        composable("home") {
+                            HomeScreen(
+                                username = username,
+                                onLogout = {
+                                    com.fearlauncher.logic.ConfigManager.updateConfig(context) { it.copy(selectedUsername = "") }
+                                    username = ""
+                                    isLoggedIn = false
+                                },
+                                onAccountSelect = { newUser ->
+                                    com.fearlauncher.logic.ConfigManager.updateConfig(context) { it.copy(selectedUsername = newUser) }
+                                    username = newUser
+                                }
+                            )
+                        }
+                        composable("play") {
+                            PlayScreen(
+                                onLaunchGame = { version ->
+                                    val config = com.fearlauncher.logic.ConfigManager.getConfig(context)
+                                    val process = com.fearlauncher.logic.LauncherManager.launchGame(
+                                        context = context,
+                                        versionId = version,
+                                        username = username,
+                                        maxMemory = config.maxMemory,
+                                        renderer = config.renderer,
+                                        jvmArgs = config.jvmArgs
+                                    )
+                                    if (process != null) {
+                                        toastTitle = "Game Started!"
+                                        toastMessage = "Launching $version..."
+                                        toastVisible = true
+                                    } else {
+                                        toastTitle = "Launch Failed"
+                                        toastMessage = "Could not start the game process."
+                                        toastVisible = true
+                                    }
+                                }
+                            )
+                        }
                         composable("modpacks") { ModpackScreen() }
                         composable("settings") { SettingsScreen() }
                     }
                 }
             }
+        }
+
+        Box(modifier = Modifier.align(Alignment.TopEnd)) {
+            com.fearlauncher.ui.components.AdvancementToast(
+                message = toastMessage,
+                title = toastTitle,
+                isVisible = toastVisible,
+                onDismiss = { toastVisible = false }
+            )
         }
     }
 }

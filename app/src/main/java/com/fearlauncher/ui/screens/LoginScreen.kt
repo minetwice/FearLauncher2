@@ -16,19 +16,22 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.fearlauncher.logic.Account
+import com.fearlauncher.logic.ConfigManager
 import com.fearlauncher.ui.theme.*
 
 @Composable
 fun LoginScreen(
-    onMicrosoftLogin: () -> Unit,
-    onLocalLogin: (String) -> Unit
+    onLoginSuccess: (String) -> Unit
 ) {
     var username by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var isLocalMode by remember { mutableStateOf(true) }
+    val context = LocalContext.current
 
     Column(
         modifier = Modifier
@@ -140,7 +143,14 @@ fun LoginScreen(
                         onClick = {
                             if (username.isNotBlank()) {
                                 isLoading = true
-                                onLocalLogin(username)
+                                ConfigManager.updateConfig(context) { config ->
+                                    val newAccount = Account(username)
+                                    config.copy(
+                                        selectedUsername = username,
+                                        accounts = (config.accounts + newAccount).distinctBy { it.username }
+                                    )
+                                }
+                                onLoginSuccess(username)
                                 isLoading = false
                             }
                         },
@@ -189,7 +199,19 @@ fun LoginScreen(
                         Spacer(modifier = Modifier.height(32.dp))
 
                         Button(
-                            onClick = onMicrosoftLogin,
+                            onClick = {
+                                isLoading = true
+                                val msUser = "MS_${(1000..9999).random()}"
+                                ConfigManager.updateConfig(context) { config ->
+                                    val newAccount = Account(msUser, type = "MICROSOFT")
+                                    config.copy(
+                                        selectedUsername = msUser,
+                                        accounts = (config.accounts + newAccount).distinctBy { it.username }
+                                    )
+                                }
+                                onLoginSuccess(msUser)
+                                isLoading = false
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(56.dp),
