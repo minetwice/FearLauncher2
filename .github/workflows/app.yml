@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - Fearv2
   workflow_dispatch:
 
 jobs:
@@ -31,3 +32,13 @@ jobs:
         with:
           name: FearLauncher-Debug
           path: app/build/outputs/apk/debug/app-debug.apk
+
+      - name: Create Release
+        if: github.event_name == 'push'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Fear Launcher Release ${{ github.run_number }}
+          files: app/build/outputs/apk/debug/app-debug.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
