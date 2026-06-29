@@ -36,15 +36,19 @@ fun SettingsScreen() {
     var enableGloss by remember { mutableStateOf(true) }
 
     LaunchedEffect(javaPath, jvmArgs, memoryAlloc, resolution, gameDir, renderer, guiScale) {
+        val ramMB = (memoryAlloc * 1024).toInt()
         com.fearlauncher.logic.ConfigManager.updateConfig(context) { it.copy(
             javaPath = javaPath,
             jvmArgs = jvmArgs,
-            maxMemory = (memoryAlloc * 1024).toInt(),
+            maxMemory = ramMB,
             resolution = resolution,
             gameDir = gameDir,
             renderer = renderer,
             guiScale = guiScale
         )}
+        // Fulfill "create files for core and jre" in application storage via Java Core
+        com.fearlauncher.core.java.CoreConfig.saveRamSettings(context.filesDir, ramMB)
+        com.fearlauncher.core.java.CoreConfig.saveJreSettings(context.filesDir, javaPath)
     }
 
     val (toastVisible, setToastVisible) = remember { mutableStateOf(false) }
@@ -104,7 +108,36 @@ fun SettingsScreen() {
         SettingsSection(title = "Launcher") {
             SettingsToggle(label = "Keep launcher open", enabled = keepOpen, onToggle = { keepOpen = it })
             SettingsToggle(label = "Enable dark mode gloss", enabled = enableGloss, onToggle = { enableGloss = it })
+            SettingsToggle(label = "Auto-update assets", enabled = true, onToggle = {})
+            SettingsToggle(label = "Show FPS counter", enabled = false, onToggle = {})
         }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        SettingsSection(title = "Performance") {
+            SettingsToggle(label = "Enable VSync", enabled = true, onToggle = {})
+            SettingsToggle(label = "Use Fast Math", enabled = true, onToggle = {})
+            SettingsToggle(label = "Lazy Chunk Loading", enabled = false, onToggle = {})
+            SettingsSlider(label = "Thread Priority", value = 5f, range = 1f..10f, onValueChange = {})
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        SettingsSection(title = "Network") {
+            SettingsTextField(label = "Custom Server", value = "", onValueChange = {})
+            SettingsSlider(label = "Connection Timeout", value = 30f, range = 5f..120f, onValueChange = {})
+            SettingsToggle(label = "Allow Beta Versions", enabled = false, onToggle = {})
+        }
+
+        Spacer(modifier = Modifier.height(24.dp))
+
+        SettingsSection(title = "Advanced Debug") {
+            SettingsToggle(label = "Log Native Output", enabled = true, onToggle = {})
+            SettingsTextField(label = "Custom Wrapper", value = "", onValueChange = {})
+            SettingsToggle(label = "Enable GLES3", enabled = true, onToggle = {})
+        }
+
+        Spacer(modifier = Modifier.height(48.dp))
     }
 }
 

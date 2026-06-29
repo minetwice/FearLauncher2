@@ -35,8 +35,8 @@ fun BottomNavBar(selectedItem: Int, onItemSelected: (Int) -> Unit) {
             )
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.PlayArrow, "Play") },
-            label = { Text("Play") },
+            icon = { Icon(Icons.Default.Download, "Install") },
+            label = { Text("Install") },
             selected = selectedItem == 2,
             onClick = { onItemSelected(2) },
             colors = NavigationBarItemDefaults.colors(
@@ -48,8 +48,8 @@ fun BottomNavBar(selectedItem: Int, onItemSelected: (Int) -> Unit) {
             )
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.GridView, "Modpacks") },
-            label = { Text("Modpacks") },
+            icon = { Icon(Icons.Default.PlayArrow, "Play") },
+            label = { Text("Play") },
             selected = selectedItem == 3,
             onClick = { onItemSelected(3) },
             colors = NavigationBarItemDefaults.colors(
@@ -61,10 +61,23 @@ fun BottomNavBar(selectedItem: Int, onItemSelected: (Int) -> Unit) {
             )
         )
         NavigationBarItem(
-            icon = { Icon(Icons.Default.Settings, "Settings") },
-            label = { Text("Settings") },
+            icon = { Icon(Icons.Default.GridView, "Modpacks") },
+            label = { Text("Modpacks") },
             selected = selectedItem == 4,
             onClick = { onItemSelected(4) },
+            colors = NavigationBarItemDefaults.colors(
+                selectedTextColor = SilverPrimary,
+                unselectedTextColor = SilverPrimary.copy(alpha = 0.6f),
+                selectedIconColor = SilverPrimary,
+                unselectedIconColor = SilverPrimary.copy(alpha = 0.6f),
+                indicatorColor = BlackSurface
+            )
+        )
+        NavigationBarItem(
+            icon = { Icon(Icons.Default.Settings, "Settings") },
+            label = { Text("Settings") },
+            selected = selectedItem == 5,
+            onClick = { onItemSelected(5) },
             colors = NavigationBarItemDefaults.colors(
                 selectedTextColor = SilverPrimary,
                 unselectedTextColor = SilverPrimary.copy(alpha = 0.6f),

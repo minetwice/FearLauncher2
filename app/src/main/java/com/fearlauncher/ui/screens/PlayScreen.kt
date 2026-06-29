@@ -177,7 +177,9 @@ fun PlayScreen(
                     LazyColumn(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(availableVersions.filter { it.id.contains(searchQuery, ignoreCase = true) }) { version ->
+                        items(availableVersions.filter {
+                            it.id.contains(searchQuery, ignoreCase = true)
+                        }) { version ->
                             VersionListItem(
                                 version = version,
                                 isSelected = selectedVersion?.id == version.id,
@@ -308,7 +310,7 @@ fun PlayScreen(
                                 enabled = !isLoading && !isDownloading,
                                 shape = RoundedCornerShape(12.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (selectedVersion!!.isInstalled) SilverPrimary else SilverDark
+                                    containerColor = if (VersionManager.isVersionInstalled(context, selectedVersion!!.id)) SilverPrimary else SilverDark
                                 )
                             ) {
                                 if (isLoading) {

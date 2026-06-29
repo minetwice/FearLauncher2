@@ -90,8 +90,21 @@ fun ModpackScreen() {
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             FilterChip(label = selectedPlatform, onClick = { selectedPlatform = if (selectedPlatform == "Modrinth") "Curse" else "Modrinth" })
-            FilterChip(label = selectedVersion, onClick = { /* Show version selector */ })
-            FilterChip(label = selectedLoader, onClick = { selectedLoader = if (selectedLoader == "Fabric") "Forge" else "Fabric" })
+            FilterChip(label = selectedVersion, onClick = {
+                selectedVersion = when(selectedVersion) {
+                    "1.20.1" -> "1.19.2"
+                    "1.19.2" -> "1.18.2"
+                    else -> "1.20.1"
+                }
+            })
+            FilterChip(label = selectedLoader, onClick = {
+                selectedLoader = when(selectedLoader) {
+                    "Fabric" -> "Forge"
+                    "Forge" -> "NeoForge"
+                    "NeoForge" -> "Quilt"
+                    else -> "Fabric"
+                }
+            })
         }
 
         Spacer(modifier = Modifier.height(16.dp))

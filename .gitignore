@@ -18,4 +18,9 @@ build/
 # Editors
 .vscode/
 .idea/
-```
+```/app/.cxx/
+/app/build/
+.gradle/
+app/.cxx/
+app/build/
+.gradle/

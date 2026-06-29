@@ -57,13 +57,14 @@ object LauncherManager {
         val processBuilder = ProcessBuilder(command)
         processBuilder.directory(gameDir)
 
-        // Renderer Environment Variables
+        // Renderer Environment Variables using Java/Native Bridge
         val env = processBuilder.environment()
-        when (renderer) {
-            "Holly Renderer" -> env["GALLIUM_DRIVER"] = "zink"
-            "Zink" -> env["GALLIUM_DRIVER"] = "zink"
-            "GL4ES" -> env["LIBGL_ES"] = "2"
-        }
+        val rendererEnv = com.fearlauncher.core.RenderEngine.getEnvironmentVariables(
+            com.fearlauncher.core.RenderEngine.Renderer.entries.find { it.displayName == renderer } ?: com.fearlauncher.core.RenderEngine.Renderer.HOLLY,
+            gameDir
+        )
+        com.fearlauncher.core.java.NativeLauncher.setupEnvironment(rendererEnv)
+        env.putAll(rendererEnv)
 
         return try {
             processBuilder.start()

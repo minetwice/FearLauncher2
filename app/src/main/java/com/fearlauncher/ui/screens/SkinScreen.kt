@@ -97,16 +97,18 @@ fun SkinScreen() {
                             Box(
                                 modifier = Modifier
                                     .size(width = 56.dp, height = 56.dp)
-                                    .background(if (selectedSkin?.name == "Alex") Color(0xFFFFD1AA) else Color(0xFFC09060), RoundedCornerShape(2.dp)),
+                                    .background(if (selectedSkin?.name == "Alex") Color(0xFFEBC7A1) else Color(0xFF9E7658), RoundedCornerShape(2.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
-                                // Face Details (Mouth/Eyes)
-                                Box(modifier = Modifier.fillMaxSize().padding(horizontal = 12.dp, vertical = 16.dp)) {
+                                // Real Face Details (64x64 style)
+                                Box(modifier = Modifier.fillMaxSize().padding(horizontal = 10.dp, vertical = 14.dp)) {
                                     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                                        Box(modifier = Modifier.size(8.dp).background(Color.White))
-                                        Box(modifier = Modifier.size(8.dp).background(Color.White))
+                                        // Eyes
+                                        Box(modifier = Modifier.size(width = 10.dp, height = 6.dp).background(Color(0xFF3F3024)).padding(1.dp).background(Color.White))
+                                        Box(modifier = Modifier.size(width = 10.dp, height = 6.dp).background(Color(0xFF3F3024)).padding(1.dp).background(Color.White))
                                     }
-                                    Box(modifier = Modifier.size(width = 16.dp, height = 4.dp).background(Color.Red.copy(alpha = 0.5f)).align(Alignment.BottomCenter))
+                                    // Nose/Mouth area
+                                    Box(modifier = Modifier.size(width = 18.dp, height = 8.dp).background(Color(0xFF6B4D36)).align(Alignment.BottomCenter))
                                 }
                             }
                             // Body

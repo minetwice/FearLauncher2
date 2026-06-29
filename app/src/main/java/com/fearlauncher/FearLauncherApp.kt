@@ -2,6 +2,7 @@ package com.fearlauncher
 
 import androidx.compose.animation.core.*
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +49,10 @@ fun FearLauncherApp() {
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .graphicsLayer {
+                scaleX = config.guiScale
+                scaleY = config.guiScale
+            }
             .background(
                 Brush.linearGradient(
                     colors = listOf(DeepBlack, Color(0xFF1A1A1A), DeepBlack),
@@ -86,18 +91,20 @@ fun FearLauncherApp() {
                         selectedItem = when (navBackStackEntry?.destination?.route) {
                             "home" -> 0
                             "skins" -> 1
-                            "play" -> 2
-                            "modpacks" -> 3
-                            "settings" -> 4
+                            "installations" -> 2
+                            "play" -> 3
+                            "modpacks" -> 4
+                            "settings" -> 5
                             else -> 0
                         },
                         onItemSelected = { index ->
                             val route = when (index) {
                                 0 -> "home"
                                 1 -> "skins"
-                                2 -> "play"
-                                3 -> "modpacks"
-                                4 -> "settings"
+                                2 -> "installations"
+                                3 -> "play"
+                                4 -> "modpacks"
+                                5 -> "settings"
                                 else -> "home"
                             }
                             navController.navigate(route) {
@@ -126,6 +133,7 @@ fun FearLauncherApp() {
                             )
                         }
                         composable("skins") { SkinScreen() }
+                                composable("installations") { InstallationScreen() }
                         composable("play") {
                             PlayScreen(
                                 onLaunchGame = { version ->
