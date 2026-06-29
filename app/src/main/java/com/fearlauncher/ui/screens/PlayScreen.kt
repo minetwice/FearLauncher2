@@ -28,7 +28,8 @@ data class MinecraftVersion(
     val id: String,
     val name: String,
     val type: String,
-    val isInstalled: Boolean = false
+    val isInstalled: Boolean = false,
+    val loader: String = "Vanilla" // Vanilla, Fabric, Forge, Optifine, Quilt, NeoForge
 )
 
 @Composable
@@ -52,9 +53,10 @@ fun PlayScreen(
             availableVersions = manifest.versions.map { v ->
                 MinecraftVersion(
                     id = v.id,
-                    name = "${v.id} - ${v.type.replaceFirstChar { it.uppercase() }}",
+                    name = v.id,
                     type = v.type,
-                    isInstalled = false // Will be updated by VersionManager
+                    isInstalled = VersionManager.isVersionInstalled(context, v.id),
+                    loader = "Vanilla"
                 )
             }
         } catch (e: Exception) {
@@ -212,12 +214,9 @@ fun PlayScreen(
                                 .padding(20.dp),
                             horizontalAlignment = Alignment.CenterHorizontally
                         ) {
-                            Icon(
-                                Icons.Default.Gamepad,
-                                "Game",
-                                tint = SilverPrimary,
-                                modifier = Modifier.size(64.dp)
-                            )
+                            // Large Loader Icon and Text
+                            LoaderInfoSection(selectedVersion!!.loader)
+
                             Spacer(modifier = Modifier.height(16.dp))
                             
                             Text(
@@ -268,7 +267,7 @@ fun PlayScreen(
                                 Spacer(modifier = Modifier.height(12.dp))
                             }
 
-                            // Launch Button
+                            // RUN Button
                             Button(
                                 onClick = {
                                     if (VersionManager.isVersionInstalled(context, selectedVersion!!.id)) {
@@ -277,10 +276,8 @@ fun PlayScreen(
                                         isDownloading = true
                                         scope.launch {
                                             try {
-                                                // In a real scenario, we'd get the actual JAR URL from the manifest
                                                 val manifest = NetworkModule.minecraftApi.getVersionManifest()
                                                 val versionInfo = manifest.versions.find { it.id == selectedVersion!!.id }
-
                                                 val detail = NetworkModule.minecraftApi.getVersionDetail(versionInfo?.url ?: "")
 
                                                 VersionManager.downloadVersion(
@@ -291,7 +288,6 @@ fun PlayScreen(
                                                         downloadStatus = status
                                                     }
                                                 )
-                                                // Refresh versions list to show as installed
                                                 availableVersions = availableVersions.map {
                                                     if (it.id == selectedVersion!!.id) it.copy(isInstalled = true) else it
                                                 }
@@ -307,33 +303,33 @@ fun PlayScreen(
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(56.dp),
+                                    .height(64.dp),
                                 enabled = !isLoading && !isDownloading,
-                                shape = RoundedCornerShape(12.dp),
+                                shape = RoundedCornerShape(16.dp),
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = if (VersionManager.isVersionInstalled(context, selectedVersion!!.id)) SilverPrimary else SilverDark
+                                    containerColor = if (VersionManager.isVersionInstalled(context, selectedVersion!!.id)) Color(0xFFC0C0C0) else SilverDark
                                 )
                             ) {
                                 if (isLoading) {
                                     CircularProgressIndicator(
-                                        modifier = Modifier.size(24.dp),
+                                        modifier = Modifier.size(28.dp),
                                         color = BlackBg,
-                                        strokeWidth = 2.dp
+                                        strokeWidth = 3.dp
                                     )
                                 } else {
                                     val isInstalled = VersionManager.isVersionInstalled(context, selectedVersion!!.id)
                                     Icon(
                                         if (isInstalled) Icons.Default.PlayArrow else Icons.Default.Download,
                                         "Action",
-                                        tint = if (isInstalled) BlackBg else SilverDark,
-                                        modifier = Modifier.size(24.dp)
+                                        tint = BlackBg,
+                                        modifier = Modifier.size(28.dp)
                                     )
-                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Spacer(modifier = Modifier.width(12.dp))
                                     Text(
-                                        if (isInstalled) "LAUNCH GAME" else "INSTALL VERSION",
-                                        color = if (isInstalled) BlackBg else SilverDark,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 16.sp
+                                        if (isInstalled) "RUN" else "INSTALL",
+                                        color = BlackBg,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 20.sp
                                     )
                                 }
                             }
@@ -374,7 +370,7 @@ fun PlayScreen(
                             .padding(16.dp)
                     ) {
                         Text(
-                            "Quick Actions",
+                            "Mod Loaders",
                             style = MaterialTheme.typography.titleSmall,
                             color = SilverAccent,
                             fontWeight = FontWeight.SemiBold
@@ -385,14 +381,68 @@ fun PlayScreen(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceEvenly
                         ) {
-                            ActionButton(icon = Icons.Default.FolderOpen, label = "Mods")
-                            ActionButton(icon = Icons.Default.Palette, label = "Resource Packs")
-                            ActionButton(icon = Icons.Default.Build, label = "Settings")
+                            LoaderSmallIcon("Fabric")
+                            LoaderSmallIcon("Forge")
+                            LoaderSmallIcon("Quilt")
+                            LoaderSmallIcon("NeoForge")
                         }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+fun LoaderInfoSection(loader: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(80.dp)
+                .background(DeepBlack, RoundedCornerShape(16.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                loader.take(1).uppercase(),
+                color = SilverPrimary,
+                fontSize = 40.sp,
+                fontWeight = FontWeight.Black
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            loader,
+            color = SilverAccent,
+            fontWeight = FontWeight.Bold,
+            fontSize = 16.sp
+        )
+        Text(
+            when(loader) {
+                "Fabric" -> "Lightweight mod loader"
+                "Forge" -> "Classic modding API"
+                "Optifine" -> "Optimization and Shaders"
+                "Quilt" -> "Community-driven loader"
+                "NeoForge" -> "The new Forge era"
+                else -> "Official game engine"
+            },
+            color = SilverDark,
+            fontSize = 11.sp
+        )
+    }
+}
+
+@Composable
+fun LoaderSmallIcon(name: String) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(DeepBlack, RoundedCornerShape(8.dp)),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(name.take(1), color = SilverPrimary, fontWeight = FontWeight.Bold)
+        }
+        Text(name, color = SilverDark, fontSize = 9.sp)
     }
 }
 
@@ -423,13 +473,13 @@ fun VersionListItem(
         ) {
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    version.name.split(" - ").first(),
+                    version.name,
                     color = if (isSelected) SilverPrimary else Color.White,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                     fontSize = 14.sp
                 )
                 Text(
-                    version.name.split(" - ").getOrElse(1) { "" },
+                    version.loader,
                     color = SilverDark,
                     fontSize = 11.sp
                 )
@@ -451,33 +501,5 @@ fun VersionListItem(
                 )
             }
         }
-    }
-}
-
-@Composable
-fun ActionButton(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    label: String
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.padding(8.dp)
-    ) {
-        IconButton(
-            onClick = { },
-            modifier = Modifier.size(48.dp)
-        ) {
-            Icon(
-                icon,
-                label,
-                tint = SilverPrimary,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        Text(
-            label,
-            color = SilverDark,
-            fontSize = 10.sp
-        )
     }
 }

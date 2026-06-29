@@ -57,29 +57,25 @@ fun ModpackScreen() {
         ) {
             Column {
                 Text(
-                    "MODPACKS",
+                    "INTENSE DOWNLOADS",
                     style = MaterialTheme.typography.headlineMedium,
                     color = SilverAccent,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "Powered by $selectedPlatform",
+                    "Modpacks from Modrinth and CurseForge",
                     color = SilverDark,
                     fontSize = 14.sp
                 )
             }
-            // Platform Logo Placeholder
-            Box(
+            // Platform Toggle
+            Row(
                 modifier = Modifier
-                    .size(40.dp)
-                    .background(DeepBlack, RoundedCornerShape(8.dp)),
-                contentAlignment = Alignment.Center
+                    .background(DeepBlack, RoundedCornerShape(12.dp))
+                    .padding(4.dp)
             ) {
-                Text(
-                    if (selectedPlatform == "Modrinth") "M" else "C",
-                    color = SilverPrimary,
-                    fontWeight = FontWeight.Bold
-                )
+                PlatformToggleItem("Modrinth", selectedPlatform == "Modrinth") { selectedPlatform = "Modrinth" }
+                PlatformToggleItem("CurseForge", selectedPlatform == "CurseForge") { selectedPlatform = "CurseForge" }
             }
         }
 
@@ -90,7 +86,6 @@ fun ModpackScreen() {
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            FilterChip(label = selectedPlatform, onClick = { selectedPlatform = if (selectedPlatform == "Modrinth") "Curse" else "Modrinth" })
             FilterChip(label = selectedVersion, onClick = {
                 selectedVersion = when(selectedVersion) {
                     "1.20.1" -> "1.19.2"
@@ -142,6 +137,23 @@ fun ModpackScreen() {
 }
 
 @Composable
+fun PlatformToggleItem(name: String, isSelected: Boolean, onClick: () -> Unit) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(8.dp),
+        color = if (isSelected) SilverPrimary else Color.Transparent,
+    ) {
+        Text(
+            name,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+            color = if (isSelected) BlackBg else SilverDark,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp
+        )
+    }
+}
+
+@Composable
 fun FilterChip(label: String, onClick: () -> Unit) {
     Surface(
         onClick = onClick,
@@ -178,7 +190,12 @@ fun ModpackCard(project: ModrinthProject) {
                     .background(DeepBlack, RoundedCornerShape(8.dp)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Download, "Icon", tint = SilverDark)
+                Text(
+                    project.title.take(1),
+                    color = SilverPrimary,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
             Spacer(modifier = Modifier.width(16.dp))
             Column(modifier = Modifier.weight(1f)) {
@@ -190,8 +207,14 @@ fun ModpackCard(project: ModrinthProject) {
                     maxLines = 2
                 )
             }
-            IconButton(onClick = {}) {
-                Icon(Icons.Default.Download, "Download", tint = SilverPrimary)
+            Button(
+                onClick = {},
+                shape = RoundedCornerShape(8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = SilverPrimary)
+            ) {
+                Icon(Icons.Default.Download, null, tint = BlackBg, modifier = Modifier.size(16.dp))
+                Spacer(Modifier.width(4.dp))
+                Text("GET", color = BlackBg, fontSize = 12.sp, fontWeight = FontWeight.Bold)
             }
         }
     }

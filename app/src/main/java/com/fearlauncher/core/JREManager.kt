@@ -15,9 +15,9 @@ import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
 class JREManager(private val context: Context) {
 
     enum class JREVersion(val version: Int, val id: String) {
+        JRE_17(17, "17"),
         JRE_18(18, "18"),
-        JRE_21(21, "21"),
-        JRE_25(25, "25")
+        JRE_21(21, "21")
     }
 
     fun getJREPath(version: JREVersion): File {
@@ -37,9 +37,9 @@ class JREManager(private val context: Context) {
         val arch = SystemUtils.getArchitecture()
         // These should be real URLs for Android-compatible JREs (e.g. from Termux or similar projects)
         return when (version) {
+            JREVersion.JRE_17 -> "https://github.com/Adoptium/temurin17-binaries/releases/download/jdk-17.0.9%2B9/OpenJDK17U-jdk_aarch64_linux_hotspot_17.0.9_9.tar.gz"
             JREVersion.JRE_18 -> "https://github.com/Adoptium/temurin18-binaries/releases/download/jdk-18.0.2.1%2B1/OpenJDK18U-jdk_aarch64_linux_hotspot_18.0.2.1_1.tar.gz"
             JREVersion.JRE_21 -> "https://github.com/Adoptium/temurin21-binaries/releases/download/jdk-21.0.1%2B12/OpenJDK21U-jdk_aarch64_linux_hotspot_21.0.1_12.tar.gz"
-            JREVersion.JRE_25 -> "https://github.com/Adoptium/temurin25-binaries/releases/download/jdk-25/OpenJDK25U-jdk_aarch64_linux_hotspot_25.tar.gz"
         }
     }
 

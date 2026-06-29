@@ -32,7 +32,7 @@ fun FearLauncherApp() {
     val config = remember { com.fearlauncher.logic.ConfigManager.getConfig(context) }
     var isLoggedIn by remember { mutableStateOf(config.selectedUsername.isNotBlank()) }
     var username by remember { mutableStateOf(config.selectedUsername) }
-    var isSetupComplete by remember { mutableStateOf(false) } // Should be persisted in real app
+    var isSetupComplete by remember { mutableStateOf(true) } // Removed setup requirement
 
     // JRE initialization state
     var jreDownloadMessage by remember { mutableStateOf("") }
