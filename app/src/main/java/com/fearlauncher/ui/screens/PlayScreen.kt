@@ -264,7 +264,7 @@ fun PlayScreen(
                             
                             // Download Status Bar
                             if (isDownloading && downloadStatus != null) {
-                                com.fearlauncher.ui.components.DownloadStatusBar(status = downloadStatus!!)
+                                com.fearlauncher.ui.components.DragonEpicDownloadBar(status = downloadStatus!!)
                                 Spacer(modifier = Modifier.height(12.dp))
                             }
 

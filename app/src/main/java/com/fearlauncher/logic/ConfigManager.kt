@@ -13,7 +13,17 @@ data class LauncherConfig(
     val javaPath: String = "JRE 21",
     val jvmArgs: String = "-XX:+UseG1GC -Dsun.stdout.encoding=UTF-8 -Dsun.stderr.encoding=UTF-8",
     val gameDir: String = "",
-    val guiScale: Float = 1.0f
+    val guiScale: Float = 1.0f,
+    val keepOpen: Boolean = true,
+    val enableGloss: Boolean = true,
+    val autoUpdate: Boolean = true,
+    val showFps: Boolean = false,
+    val vsync: Boolean = true,
+    val fastMath: Boolean = true,
+    val lazyChunk: Boolean = false,
+    val logNative: Boolean = true,
+    val gles3: Boolean = true,
+    val threadPriority: Int = 5
 )
 
 data class Account(

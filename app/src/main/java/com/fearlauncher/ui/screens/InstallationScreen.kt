@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.fearlauncher.logic.VersionManager
 import com.fearlauncher.network.NetworkModule
-import com.fearlauncher.ui.components.DownloadStatusBar
+import com.fearlauncher.ui.components.DragonEpicDownloadBar
 import com.fearlauncher.ui.theme.*
 import kotlinx.coroutines.launch
 
@@ -66,9 +66,7 @@ fun InstallationScreen() {
                 colors = CardDefaults.cardColors(containerColor = BlackSurface)
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text("Installing $downloadingVersionId", color = SilverPrimary, fontWeight = FontWeight.Bold)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    DownloadStatusBar(status = downloadStatus!!)
+                    DragonEpicDownloadBar(status = downloadStatus!!)
                 }
             }
             Spacer(modifier = Modifier.height(24.dp))

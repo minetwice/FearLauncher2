@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.animation.*
 import androidx.navigation.compose.rememberNavController
 import com.fearlauncher.ui.theme.*
 import com.fearlauncher.ui.components.BottomNavBar
@@ -74,10 +75,6 @@ fun FearLauncherApp() {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .graphicsLayer {
-                scaleX = config.guiScale
-                scaleY = config.guiScale
-            }
             .background(
                 Brush.linearGradient(
                     colors = listOf(DeepBlack, Color(0xFF1A1A1A), DeepBlack),
@@ -99,93 +96,118 @@ fun FearLauncherApp() {
                 )
         )
 
-        if (!isLoggedIn) {
-            LoginScreen(
-                onLoginSuccess = { user ->
-                    username = user
-                    isLoggedIn = true
-                }
-            )
-        } else if (!isSetupComplete) {
-            SetupScreen(onComplete = { isSetupComplete = true })
-        } else {
-            Scaffold(
-                containerColor = androidx.compose.ui.graphics.Color.Transparent,
-                bottomBar = {
-                    BottomNavBar(
-                        selectedItem = when (navBackStackEntry?.destination?.route) {
-                            "home" -> 0
-                            "skins" -> 1
-                            "installations" -> 2
-                            "play" -> 3
-                            "modpacks" -> 4
-                            "settings" -> 5
-                            else -> 0
-                        },
-                        onItemSelected = { index ->
-                            val route = when (index) {
-                                0 -> "home"
-                                1 -> "skins"
-                                2 -> "installations"
-                                3 -> "play"
-                                4 -> "modpacks"
-                                5 -> "settings"
-                                else -> "home"
-                            }
-                            navController.navigate(route) {
-                                popUpTo("home") { saveState = true }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        }
-                    )
-                }
-            ) { innerPadding ->
-                Box(modifier = Modifier.padding(innerPadding)) {
-                    NavHost(navController = navController, startDestination = "home") {
-                        composable("home") {
-                            HomeScreen(
-                                username = username,
-                                onLogout = {
-                                    com.fearlauncher.logic.ConfigManager.updateConfig(context) { it.copy(selectedUsername = "") }
-                                    username = ""
-                                    isLoggedIn = false
-                                },
-                                onAccountSelect = { newUser ->
-                                    com.fearlauncher.logic.ConfigManager.updateConfig(context) { it.copy(selectedUsername = newUser) }
-                                    username = newUser
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .graphicsLayer {
+                    scaleX = config.guiScale
+                    scaleY = config.guiScale
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            if (!isLoggedIn) {
+                LoginScreen(
+                    onLoginSuccess = { user ->
+                        username = user
+                        isLoggedIn = true
+                    }
+                )
+            } else if (!isSetupComplete) {
+                SetupScreen(onComplete = { isSetupComplete = true })
+            } else {
+                Scaffold(
+                    containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                    bottomBar = {
+                        BottomNavBar(
+                            selectedItem = when (navBackStackEntry?.destination?.route) {
+                                "home" -> 0
+                                "skins" -> 1
+                                "installations" -> 2
+                                "play" -> 3
+                                "modpacks" -> 4
+                                "settings" -> 5
+                                else -> 0
+                            },
+                            onItemSelected = { index ->
+                                val route = when (index) {
+                                    0 -> "home"
+                                    1 -> "skins"
+                                    2 -> "installations"
+                                    3 -> "play"
+                                    4 -> "modpacks"
+                                    5 -> "settings"
+                                    else -> "home"
                                 }
-                            )
-                        }
-                        composable("skins") { SkinScreen() }
-                                composable("installations") { InstallationScreen() }
-                        composable("play") {
-                            PlayScreen(
-                                onLaunchGame = { version ->
-                                    val currentConfig = com.fearlauncher.logic.ConfigManager.getConfig(context)
-                                    val process = com.fearlauncher.core.LauncherManager.launchGame(
-                                        context = context,
-                                        versionId = version,
-                                        username = username,
-                                        maxMemory = currentConfig.maxMemory,
-                                        renderer = currentConfig.renderer,
-                                        javaPath = currentConfig.javaPath,
-                                        jvmArgs = currentConfig.jvmArgs
-                                    )
-                                    if (process != null) {
-                                        toastTitle = "Game Started!"
-                                        toastMessage = "Launching $version..."
-                                        toastVisible = true
-                                    } else {
-                                        toastTitle = "Launch Failed"
-                                        toastMessage = "Could not start the game process."
-                                        toastVisible = true
+                                navController.navigate(route) {
+                                    popUpTo("home") { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            }
+                        )
+                    }
+                ) { innerPadding ->
+                    Box(modifier = Modifier.padding(innerPadding)) {
+                        NavHost(
+                            navController = navController,
+                            startDestination = "home",
+                            enterTransition = {
+                                slideInHorizontally(initialOffsetX = { it }, animationSpec = tween(700)) + fadeIn()
+                            },
+                            exitTransition = {
+                                slideOutHorizontally(targetOffsetX = { -it }, animationSpec = tween(700)) + fadeOut()
+                            },
+                            popEnterTransition = {
+                                slideInHorizontally(initialOffsetX = { -it }, animationSpec = tween(700)) + fadeIn()
+                            },
+                            popExitTransition = {
+                                slideOutHorizontally(targetOffsetX = { it }, animationSpec = tween(700)) + fadeOut()
+                            }
+                        ) {
+                            composable("home") {
+                                HomeScreen(
+                                    username = username,
+                                    onLogout = {
+                                        com.fearlauncher.logic.ConfigManager.updateConfig(context) { it.copy(selectedUsername = "") }
+                                        username = ""
+                                        isLoggedIn = false
+                                    },
+                                    onAccountSelect = { newUser ->
+                                        com.fearlauncher.logic.ConfigManager.updateConfig(context) { it.copy(selectedUsername = newUser) }
+                                        username = newUser
                                     }
-                                }
-                            )
+                                )
+                            }
+                            composable("skins") { SkinScreen() }
+                                    composable("installations") { InstallationScreen() }
+                            composable("play") {
+                                PlayScreen(
+                                    onLaunchGame = { version ->
+                                        val currentConfig = com.fearlauncher.logic.ConfigManager.getConfig(context)
+                                        val process = com.fearlauncher.core.LauncherManager.launchGame(
+                                            context = context,
+                                            versionId = version,
+                                            username = username,
+                                            maxMemory = currentConfig.maxMemory,
+                                            renderer = currentConfig.renderer,
+                                            javaPath = currentConfig.javaPath,
+                                            jvmArgs = currentConfig.jvmArgs
+                                        )
+                                        if (process != null) {
+                                            toastTitle = "Game Started!"
+                                            toastMessage = "Launching $version..."
+                                            toastVisible = true
+                                        } else {
+                                            toastTitle = "Launch Failed"
+                                            toastMessage = "Could not start the game process."
+                                            toastVisible = true
+                                        }
+                                    }
+                                )
+                            }
+                            composable("modpacks") { ModpackScreen() }
+                            composable("settings") { SettingsScreen() }
                         }
-                        composable("modpacks") { ModpackScreen() }
-                        composable("settings") { SettingsScreen() }
                     }
                 }
             }
